@@ -4,6 +4,6 @@ import { Controller, Get } from '@nestjs/common';
 export class AppController {
   @Get()
   home() {
-    return 'This is home page.';
+    return { message: 'hello from hi-nest' };
   }
 }
