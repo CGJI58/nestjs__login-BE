@@ -6,7 +6,7 @@ export class AppController {
   constructor(private readonly databaseService: DatabaseService) {}
 
   @Get()
-  database() {
-    return this.databaseService.getDatabaseConfig();
+  getCodeRequestURL() {
+    return this.databaseService.getCodeRequestURL();
   }
 }
