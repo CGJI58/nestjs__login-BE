@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -10,30 +9,9 @@ export class UsersService {
     return this.users;
   }
 
-  getOne(id: number): User {
-    const user = this.users.find((user) => user.id === id);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} is not found.`);
-    }
-    return user;
-  }
-
-  deleteOne(id: number): string {
-    this.getOne(id); // in case of not found
-    this.users = this.users.filter((user) => user.id !== +id);
-    return 'deleted';
-  }
-
-  create(userData: CreateUserDto) {
+  create(code: string) {
     this.users.push({
-      id: this.users.length + 1,
-      ...userData,
+      code,
     });
-  }
-
-  update(id: number, updateData) {
-    const user = this.getOne(id);
-    this.deleteOne(id);
-    this.users.push({ ...user, ...updateData });
   }
 }

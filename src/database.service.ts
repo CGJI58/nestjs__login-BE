@@ -5,8 +5,10 @@ import { ConfigService } from '@nestjs/config';
 export class DatabaseService {
   constructor(private configService: ConfigService) {}
 
-  getDatabaseConfig() {
+  getCodeRequestURL() {
     const clientId = this.configService.get<string>('CLIENT_ID');
-    return { clientId };
+    const codeRequestURL = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=read:user user:email`;
+
+    return { codeRequestURL };
   }
 }
