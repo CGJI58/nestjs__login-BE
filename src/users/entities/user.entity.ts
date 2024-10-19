@@ -1,3 +1,4 @@
 export class User {
-  code: string;
+  ghCode: string;
+  accessToken: string;
 }
