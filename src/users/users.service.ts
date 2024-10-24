@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -28,11 +28,24 @@ export class UsersService {
       })
     ).json();
 
-    const accessToken = accessTokenReqest.access_token;
-    console.log(accessToken);
-    this.users.push({
-      ghCode,
-      accessToken,
-    });
+    if ('access_token' in accessTokenReqest) {
+      const { access_token: accessToken } = accessTokenReqest;
+      const userInfo = await (
+        await fetch('https://api.github.com/user', {
+          headers: {
+            Authorization: `token ${accessToken}`,
+          },
+        })
+      ).json();
+      this.users.push({
+        accessToken,
+        userInfo,
+      });
+      console.log(userInfo);
+    }
+  }
+
+  getUser(userId: string): User {
+    return this.users.find((user) => user.userInfo.id === +userId);
   }
 }
