@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 
@@ -13,7 +13,11 @@ export class UsersController {
 
   @Post('login')
   create(@Body('ghCode') ghCode: string) {
-    console.log(`ghCode in controller: ${ghCode}`);
     return this.userService.create(ghCode);
+  }
+
+  @Get(':id')
+  getUser(@Param('id') userId: string): User {
+    return this.userService.getUser(userId);
   }
 }
