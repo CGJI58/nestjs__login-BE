@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
 
+export interface IGetUser {
+  userinfo: string;
+}
+
 @Injectable()
 export class UsersService {
   private users: User[] = [];
@@ -9,7 +13,7 @@ export class UsersService {
     return this.users;
   }
 
-  async create(ghCode: string) {
+  async login(ghCode: string) {
     const baseUrl = 'https://github.com/login/oauth/access_token';
     const config = {
       client_id: process.env.CLIENT_ID,
@@ -31,21 +35,26 @@ export class UsersService {
     if ('access_token' in accessTokenReqest) {
       const { access_token: accessToken } = accessTokenReqest;
       const userInfo = await (
-        await fetch('https://api.github.com/user', {
+        await fetch('https://api.github.com/user/emails', {
           headers: {
             Authorization: `token ${accessToken}`,
           },
         })
       ).json();
       this.users.push({
+        ghCode,
         accessToken,
         userInfo,
+        id: '1234',
       });
-      console.log(userInfo);
+      console.log('this.users[0]:', this.users[0]);
     }
   }
 
-  getUser(userId: string): User {
-    return this.users.find((user) => user.userInfo.id === +userId);
+  getUser(ghCode: string): IGetUser {
+    console.log('this.users:', this.users);
+    const target = this.users.find((user) => user.ghCode === ghCode);
+    console.log('target:', target);
+    return { userinfo: 'test string from getUser()' };
   }
 }
