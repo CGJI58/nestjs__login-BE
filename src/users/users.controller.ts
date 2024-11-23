@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { IGetUser, UsersService } from './users.service';
 import { User } from './entities/user.entity';
 
 @Controller('users')
@@ -12,12 +12,12 @@ export class UsersController {
   }
 
   @Post('login')
-  create(@Body('ghCode') ghCode: string) {
-    return this.userService.create(ghCode);
+  login(@Body('ghCode') ghCode: string) {
+    return this.userService.login(ghCode);
   }
 
-  @Get(':id')
-  getUser(@Param('id') userId: string): User {
-    return this.userService.getUser(userId);
+  @Get(':ghCode')
+  getUser(@Param('ghCode') ghCode: string): IGetUser {
+    return this.userService.getUser(ghCode);
   }
 }
