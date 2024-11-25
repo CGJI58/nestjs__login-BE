@@ -1,15 +1,10 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { IGetUser, UsersService } from './users.service';
-import { User } from './entities/user.entity';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { UserInfo } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
-
-  @Get()
-  getAll(): User[] {
-    return this.userService.getAll();
-  }
 
   @Post('login')
   login(@Body('ghCode') ghCode: string) {
@@ -17,7 +12,7 @@ export class UsersController {
   }
 
   @Get(':ghCode')
-  getUser(@Param('ghCode') ghCode: string): IGetUser {
+  getUser(@Param('ghCode') ghCode: string): UserInfo {
     return this.userService.getUser(ghCode);
   }
 }
