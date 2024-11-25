@@ -1,17 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { User } from './entities/user.entity';
-
-export interface IGetUser {
-  userinfo: string;
-}
+import { User, UserInfo } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   private users: User[] = [];
-
-  getAll(): User[] {
-    return this.users;
-  }
 
   async login(ghCode: string) {
     const baseUrl = 'https://github.com/login/oauth/access_token';
@@ -44,17 +36,16 @@ export class UsersService {
       this.users.push({
         ghCode,
         accessToken,
-        userInfo,
+        userInfo: userInfo[0],
         id: '1234',
       });
-      console.log('this.users[0]:', this.users[0]);
+      console.log('login 완료 직후의 users[0]:', this.users[0]);
     }
   }
 
-  getUser(ghCode: string): IGetUser {
-    console.log('this.users:', this.users);
-    const target = this.users.find((user) => user.ghCode === ghCode);
-    console.log('target:', target);
-    return { userinfo: 'test string from getUser()' };
+  getUser(ghCode: string): UserInfo {
+    const { userInfo } = this.users.find((user) => user.ghCode === ghCode);
+    console.log('users[]에서 ghCode 비교로 찾은 user의 userInfo:', userInfo);
+    return userInfo;
   }
 }
