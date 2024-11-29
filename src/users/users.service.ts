@@ -5,7 +5,7 @@ import { User, UserInfo } from './entities/user.entity';
 export class UsersService {
   private users: User[] = [];
 
-  async login(ghCode: string) {
+  generateTokenRequestURL(ghCode: string) {
     const baseUrl = 'https://github.com/login/oauth/access_token';
     const config = {
       client_id: process.env.CLIENT_ID,
@@ -13,39 +13,53 @@ export class UsersService {
       code: ghCode,
     };
     const params = new URLSearchParams(config).toString();
-    const accessTokenReqestURL = `${baseUrl}?${params}`;
 
+    return `${baseUrl}?${params}`;
+  }
+
+  async getAccessToken(url: string) {
     const accessTokenReqest = await (
-      await fetch(accessTokenReqestURL, {
+      await fetch(url, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
         },
       })
     ).json();
-
-    if ('access_token' in accessTokenReqest) {
-      const { access_token: accessToken } = accessTokenReqest;
-      const userInfo = await (
-        await fetch('https://api.github.com/user/emails', {
-          headers: {
-            Authorization: `token ${accessToken}`,
-          },
-        })
-      ).json();
-      this.users.push({
-        ghCode,
-        accessToken,
-        userInfo: userInfo[0],
-        id: '1234',
-      });
-      console.log('login 완료 직후의 users[0]:', this.users[0]);
-    }
+    return accessTokenReqest['access_token'];
   }
 
-  getUser(ghCode: string): UserInfo {
-    const { userInfo } = this.users.find((user) => user.ghCode === ghCode);
-    console.log('users[]에서 ghCode 비교로 찾은 user의 userInfo:', userInfo);
+  async getUserInfo(accessToken: string) {
+    const response = await fetch('https://api.github.com/user/emails', {
+      headers: {
+        Authorization: `token ${accessToken}`,
+      },
+    });
+    const userInfo = (await response.json())[0];
     return userInfo;
+  }
+
+  async login(ghCode: string) {
+    const tokenRequestURL = this.generateTokenRequestURL(ghCode);
+    const accessToken = await this.getAccessToken(tokenRequestURL);
+    const userInfo = await this.getUserInfo(accessToken);
+    const user = { login: true, userInfo };
+    this.users.push(user);
+    return user;
+  }
+
+  getUser(email: string): User {
+    const user = this.users.find((user) => user.userInfo.email === email);
+    return user;
+  }
+
+  deleteUser(email: string) {
+    this.users = this.users.filter((user) => user.userInfo.email !== email);
+  }
+
+  async logout(user: User) {
+    const logoutUser = { ...user, login: false };
+    this.deleteUser(user.userInfo.email);
+    this.users.push(logoutUser);
   }
 }
