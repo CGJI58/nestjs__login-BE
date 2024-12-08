@@ -44,6 +44,8 @@ export class UsersService {
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
     const user = { login: true, userInfo };
+    //user가 이미 존재하는지 확인해서, 있으면 login:true만들어서 updateUser,
+    //없으면 새로 만드는 로직 여기다가 만들 것.
     this.users.push(user);
     return user;
   }
@@ -57,9 +59,8 @@ export class UsersService {
     this.users = this.users.filter((user) => user.userInfo.email !== email);
   }
 
-  async logout(user: User) {
-    const logoutUser = { ...user, login: false };
+  updateUserState(user: User) {
     this.deleteUser(user.userInfo.email);
-    this.users.push(logoutUser);
+    this.users.push(user);
   }
 }
