@@ -8,4 +8,12 @@ export type UserInfo = {
   primary: boolean;
   verified: boolean;
   visibility: string;
+  nickname?: string;
+  diaries?: Array<IDiary>;
 };
+
+interface IDiary {
+  date: string;
+  title: string;
+  text: string;
+}
