@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { User, UserInfo } from './entities/user.entity';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -43,14 +43,22 @@ export class UsersService {
     const tokenRequestURL = this.generateTokenRequestURL(ghCode);
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
-    const user = { login: true, userInfo };
-    //user가 이미 존재하는지 확인해서, 있으면 login:true만들어서 updateUser,
-    //없으면 새로 만드는 로직 여기다가 만들 것.
-    this.users.push(user);
-    return user;
+
+    const { email } = userInfo;
+    const targetUser = this.getUser(email);
+
+    if (targetUser) {
+      //유저 정보가 있으면
+      return this.getUser(email);
+    } else {
+      //유저 정보가 없으면
+      const user = { login: true, userInfo };
+      this.users.push(user);
+      return user;
+    }
   }
 
-  getUser(email: string): User {
+  getUser(email: string): User | undefined {
     const user = this.users.find((user) => user.userInfo.email === email);
     return user;
   }
