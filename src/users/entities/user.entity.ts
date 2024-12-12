@@ -1,19 +1,6 @@
-export class User {
+import { UserInfo } from '../schemas/userinfo.schema';
+
+export class UserEntity {
   login: boolean;
   userInfo: UserInfo;
-}
-
-export type UserInfo = {
-  email: string;
-  primary: boolean;
-  verified: boolean;
-  visibility: string;
-  nickname?: string;
-  diaries?: Array<IDiary>;
-};
-
-interface IDiary {
-  date: string;
-  title: string;
-  text: string;
 }

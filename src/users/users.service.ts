@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from './schemas/user.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   generateTokenRequestURL(ghCode: string) {
     const baseUrl = 'https://github.com/login/oauth/access_token';
@@ -45,30 +48,37 @@ export class UsersService {
     const userInfo = await this.getUserInfo(accessToken);
 
     const { email } = userInfo;
-    const targetUser = this.getUser(email);
+    let user = await this.userModel.findOne({ 'userInfo.email': email }).exec();
 
-    if (targetUser) {
+    if (user) {
       //유저 정보가 있으면
-      return this.getUser(email);
+      user.login = true;
+      await user.save();
+      return user;
     } else {
       //유저 정보가 없으면
-      const user = { login: true, userInfo };
-      this.users.push(user);
+      user = new this.userModel({ login: true, userInfo });
+      await user.save();
       return user;
     }
   }
 
-  getUser(email: string): User | undefined {
-    const user = this.users.find((user) => user.userInfo.email === email);
+  async getUser(email: string): Promise<User | undefined> {
+    const user = await this.userModel
+      .findOne({ 'userInfo.email': email })
+      .exec();
     return user;
   }
 
-  deleteUser(email: string) {
-    this.users = this.users.filter((user) => user.userInfo.email !== email);
+  async deleteUser(email: string): Promise<void> {
+    await this.userModel.deleteOne({ 'userInfo.email': email }).exec();
   }
 
-  updateUserState(user: User) {
-    this.deleteUser(user.userInfo.email);
-    this.users.push(user);
+  async updateUserState(user: User): Promise<void> {
+    await this.userModel
+      .deleteOne({ 'userInfo.email': user.userInfo.email })
+      .exec();
+    const newUser = new this.userModel(user);
+    await newUser.save();
   }
 }

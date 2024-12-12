@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -17,7 +17,7 @@ export class UsersController {
   }
 
   @Post('update')
-  update(@Body() body: { user: User }) {
+  update(@Body() body: { user: UserEntity }) {
     const user = body.user;
     return this.userService.updateUserState(user);
   }
