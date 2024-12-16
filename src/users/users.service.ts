@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { UserEntity } from './entities/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
@@ -48,22 +47,19 @@ export class UsersService {
     const userInfo = await this.getUserInfo(accessToken);
 
     const { email } = userInfo;
-    let user = await this.userModel.findOne({ 'userInfo.email': email }).exec();
+    let user = await this.getUser(email);
 
     if (user) {
-      //유저 정보가 있으면
       user.login = true;
-      await user.save();
-      return user;
     } else {
-      //유저 정보가 없으면
       user = new this.userModel({ login: true, userInfo });
-      await user.save();
-      return user;
     }
+
+    await user.save();
+    return user;
   }
 
-  async getUser(email: string): Promise<User | undefined> {
+  async getUser(email: string) {
     const user = await this.userModel
       .findOne({ 'userInfo.email': email })
       .exec();
@@ -75,9 +71,7 @@ export class UsersService {
   }
 
   async updateUserState(user: User): Promise<void> {
-    await this.userModel
-      .deleteOne({ 'userInfo.email': user.userInfo.email })
-      .exec();
+    await this.deleteUser(user.userInfo.email);
     const newUser = new this.userModel(user);
     await newUser.save();
   }
