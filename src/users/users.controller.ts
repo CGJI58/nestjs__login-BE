@@ -8,14 +8,19 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-  @Post('login')
+  @Post('ghcode')
   login(@Body('ghCode') ghCode: string) {
-    return this.userService.login(ghCode);
+    return this.userService.loginByGhCode(ghCode);
+  }
+
+  @Post('hashcode')
+  hashCheck(@Body('hashCode') hashCode: string) {
+    return this.userService.loginByHashCode(hashCode);
   }
 
   @Post('update')
   update(@Body() body: { user: UserEntity }) {
     const user = body.user;
-    return this.userService.updateUserState(user);
+    return this.userService.updateUser(user);
   }
 }
