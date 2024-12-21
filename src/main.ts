@@ -15,6 +15,5 @@ async function bootstrap() {
     }),
   );
   await app.listen(PORT_NUMBER);
-  console.log(`http://localhost:${PORT_NUMBER}`);
 }
 bootstrap();
