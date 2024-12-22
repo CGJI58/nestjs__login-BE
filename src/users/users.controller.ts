@@ -8,12 +8,12 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-  @Post('ghcode')
+  @Post('ghcode') // 여기서 set cookie 알고리즘까지 포함할 것
   login(@Body('ghCode') ghCode: string) {
     return this.userService.loginByGhCode(ghCode);
   }
 
-  @Post('hashcode')
+  @Post('hashcode') // 이거를 나중에 'get-cookie' 로 바꿀 것
   hashCheck(@Body('hashCode') hashCode: string) {
     return this.userService.loginByHashCode(hashCode);
   }
@@ -21,6 +21,6 @@ export class UsersController {
   @Post('update')
   update(@Body() body: { user: UserEntity }) {
     const user = body.user;
-    return this.userService.updateUser(user);
+    return this.userService.updateUserDB(user);
   }
 }

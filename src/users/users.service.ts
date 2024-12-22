@@ -3,48 +3,65 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import * as crypto from 'crypto';
+import { UserInfo } from './schemas/userinfo.schema';
 import { defaultUserEntity, UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  generateAccessTokenRequestURL(ghCode: string) {
+  generateAccessTokenRequestURL(ghCode: string): string {
     const baseUrl = 'https://github.com/login/oauth/access_token';
-    const config = {
-      client_id: process.env.CLIENT_ID,
-      client_secret: process.env.CLIENT_SECRET,
-      code: ghCode,
-    };
-    const params = new URLSearchParams(config).toString();
+    const [clientId, clientSecret] = [
+      process.env.CLIENT_ID,
+      process.env.CLIENT_SECRET,
+    ];
+    if (clientId && clientSecret) {
+      const config = {
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: ghCode,
+      };
+      const params = new URLSearchParams(config).toString();
 
-    return `${baseUrl}?${params}`;
+      return `${baseUrl}?${params}`;
+    } else {
+      throw new Error('Cannot get clientId or clientSecret.');
+    }
   }
 
-  async getAccessToken(url: string) {
-    const accessTokenReqest = await (
-      await fetch(url, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-        },
-      })
-    ).json();
-    return accessTokenReqest['access_token'];
+  async getAccessToken(url: string): Promise<string> {
+    try {
+      const response = await (
+        await fetch(url, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+          },
+        })
+      ).json();
+      return response['access_token'];
+    } catch {
+      throw new Error('Cannot get AccessToken.');
+    }
   }
 
   generateHashCode(accessToken: string) {
     return crypto.createHash('sha256').update(accessToken).digest('hex');
   }
 
-  async getUserInfo(accessToken: string) {
-    const response = await fetch('https://api.github.com/user/emails', {
-      headers: {
-        Authorization: `token ${accessToken}`,
-      },
-    });
-    const userInfo = (await response.json())[0];
-    return userInfo;
+  async getUserInfo(accessToken: string): Promise<UserInfo> {
+    try {
+      const response = await fetch('https://api.github.com/user/emails', {
+        headers: {
+          Authorization: `token ${accessToken}`,
+        },
+      });
+      const userInfo: UserInfo = (await response.json())[0];
+      return userInfo;
+    } catch {
+      throw new Error('Cannot get userinfo from github.');
+    }
   }
 
   async loginByGhCode(ghCode: string) {
@@ -54,16 +71,17 @@ export class UsersService {
     const hashCode = this.generateHashCode(accessToken);
     const user = await this.getUserByEmail(userInfo.email);
 
-    if (user.userInfo.email !== '') {
-      await this.deleteUser(user.userInfo.email);
-      const newUser = await this.createUser(user);
-      return newUser;
+    if (user) {
+      console.log('loginByGhCode: send updated user data to FE.');
+      const updatedUser: User = { ...user, hashCode };
+      return updatedUser;
     } else {
-      const newUser = await this.createUser({
+      console.log('loginByGhCode: send created user data to FE.');
+      const newUser = {
         hashCode,
         userInfo,
-        userRecord: { nickname: '', diaries: [] },
-      });
+        userRecord: defaultUserEntity.userRecord,
+      };
       return newUser;
     }
   }
@@ -77,16 +95,13 @@ export class UsersService {
         userInfo,
         userRecord,
       };
-    } else return defaultUserEntity;
+    } else {
+      console.log('no matched hashCode. return empty user.');
+      return defaultUserEntity;
+    }
   }
 
-  /**
-   *
-   * @param email
-   * @returns UserEntity
-   * @description return defaultUserEntity (empty user object) if user not found.
-   */
-  async getUserByEmail(email: string): Promise<UserEntity> {
+  async getUserByEmail(email: string): Promise<UserEntity | null> {
     const user = await this.userModel
       .findOne({ 'userInfo.email': email })
       .exec();
@@ -97,15 +112,21 @@ export class UsersService {
         userInfo,
         userRecord,
       };
-    } else return defaultUserEntity;
+    } else {
+      console.log('getUserByEmail: Cannot find user in DB. OK to save user.');
+      return user;
+    }
   }
 
-  async createUser(user: User): Promise<UserEntity> {
-    const newUser = new this.userModel(user);
-    await newUser.save();
-    console.log('create user');
-    const { hashCode, userInfo, userRecord } = newUser;
-    return { hashCode, userInfo, userRecord };
+  async saveUser(user: User) {
+    const checkUserDB = await this.getUserByEmail(user.userInfo.email);
+    if (checkUserDB === null) {
+      const newUserModel = new this.userModel(user);
+      await newUserModel.save();
+      console.log('save user');
+    } else {
+      throw new Error('User already exists in DB. (duplicated emails)');
+    }
   }
 
   async deleteUser(email: string) {
@@ -115,13 +136,12 @@ export class UsersService {
     if (result.deletedCount === 1) {
       console.log('delete user successfully.');
     } else {
-      console.log(`delete user failed. No matched user. email: ${email}`);
+      console.log(`delete user failed. No matched user in DB. email: ${email}`);
     }
   }
 
-  async updateUser(user: User) {
+  async updateUserDB(user: User) {
     await this.deleteUser(user.userInfo.email);
-    const newUser = await this.createUser(user);
-    return newUser;
+    await this.saveUser(user);
   }
 }
