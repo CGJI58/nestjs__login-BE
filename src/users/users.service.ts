@@ -30,19 +30,20 @@ export class UsersService {
     }
   }
 
-  async getAccessToken(url: string): Promise<string> {
-    try {
-      const response = await (
-        await fetch(url, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-          },
-        })
-      ).json();
-      return response['access_token'];
-    } catch {
-      throw new Error('Cannot get AccessToken.');
+  async getAccessToken(url: string) {
+    const accessTokenReqest = await (
+      await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+    ).json();
+    const accessToken = accessTokenReqest['access_token'];
+    if (typeof accessToken === 'string') {
+      return accessToken;
+    } else {
+      throw new Error('Cannot get accessToken from github O Auth app.');
     }
   }
 
