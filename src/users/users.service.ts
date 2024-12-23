@@ -13,8 +13,8 @@ export class UsersService {
   generateAccessTokenRequestURL(ghCode: string): string {
     const baseUrl = 'https://github.com/login/oauth/access_token';
     const [clientId, clientSecret] = [
-      process.env.CLIENT_ID,
-      process.env.CLIENT_SECRET,
+      process.env.LOCALHOST_CLIENT_ID,
+      process.env.LOCALHOST_CLIENT_SECRET,
     ];
     if (clientId && clientSecret) {
       const config = {
