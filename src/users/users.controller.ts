@@ -10,11 +10,13 @@ export class UsersController {
 
   @Post('get-user-by-ghcode')
   getUserByGhCode(@Body('ghCode') ghCode: string): Promise<UserEntity> {
+    console.log('Run getUserByGhCode()');
     return this.userService.loginByGhCode(ghCode);
   }
 
   @Post('update')
   update(@Body() body: { user: UserEntity }) {
+    console.log('Run update()');
     const user = body.user;
     return this.userService.updateUserDB(user);
   }

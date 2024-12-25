@@ -9,6 +9,7 @@ export class AppController {
 
   @Get()
   getCodeRequestURL() {
+    console.log('Run getCodeRequestURL()');
     return this.appService.getCodeRequestURL();
   }
 }

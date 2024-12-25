@@ -66,11 +66,14 @@ export class UsersService {
     const userInfo = await this.getUserInfo(accessToken);
     const user = await this.getUserByEmail(userInfo.email);
 
-    if (user) {
+    if (user.userInfo.email !== '') {
       console.log('loginByGhCode: User already exists. Load user data.');
     } else {
       console.log('loginByGhCode: User not exists. Create new user data.');
+      this.saveUser({ ...user, userInfo });
     }
+    //이 시점에 JWT 생성 (auth 모듈에서 처리.)
+
     return user;
   }
 
@@ -90,7 +93,7 @@ export class UsersService {
 
   async saveUser(user: UserEntity): Promise<void> {
     const checkUserDB = await this.getUserByEmail(user.userInfo.email);
-    if (checkUserDB === null) {
+    if (checkUserDB.userInfo.email === '') {
       const newUserModel = new this.userModel(user);
       await newUserModel.save();
       console.log('save user');
