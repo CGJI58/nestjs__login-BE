@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import * as crypto from 'crypto';
 import { UserInfo } from './schemas/userinfo.schema';
 import { defaultUserEntity, UserEntity } from './entities/user.entity';
 
@@ -47,10 +46,6 @@ export class UsersService {
     }
   }
 
-  generateHashCode(accessToken: string) {
-    return crypto.createHash('sha256').update(accessToken).digest('hex');
-  }
-
   async getUserInfo(accessToken: string): Promise<UserInfo> {
     try {
       const response = await fetch('https://api.github.com/user/emails', {
@@ -69,57 +64,31 @@ export class UsersService {
     const tokenRequestURL = this.generateAccessTokenRequestURL(ghCode);
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
-    const hashCode = this.generateHashCode(accessToken);
     const user = await this.getUserByEmail(userInfo.email);
 
     if (user) {
-      console.log('loginByGhCode: send updated user data to FE.');
-      const updatedUser: User = { ...user, hashCode };
-      return updatedUser;
+      console.log('loginByGhCode: User already exists. Load user data.');
     } else {
-      console.log('loginByGhCode: send created user data to FE.');
-      const newUser = {
-        hashCode,
-        userInfo,
-        userRecord: defaultUserEntity.userRecord,
-      };
-      return newUser;
+      console.log('loginByGhCode: User not exists. Create new user data.');
     }
+    return user;
   }
 
-  async loginByHashCode(hash: string): Promise<UserEntity> {
-    const user = await this.userModel.findOne({ hashCode: hash }).exec();
-    if (user) {
-      const { hashCode, userInfo, userRecord } = user;
-      return {
-        hashCode,
-        userInfo,
-        userRecord,
-      };
+  async getUserByEmail(email: string): Promise<UserEntity> {
+    const target = await this.userModel
+      .findOne({ 'userInfo.email': email })
+      .exec();
+    if (target) {
+      const { userInfo, userRecord } = target;
+      const user: UserEntity = { userInfo, userRecord };
+      return user;
     } else {
-      console.log('no matched hashCode. return empty user.');
+      console.log('getUserByEmail: Cannot find user in DB. OK to save user.');
       return defaultUserEntity;
     }
   }
 
-  async getUserByEmail(email: string): Promise<UserEntity | null> {
-    const user = await this.userModel
-      .findOne({ 'userInfo.email': email })
-      .exec();
-    if (user) {
-      const { hashCode, userInfo, userRecord } = user;
-      return {
-        hashCode,
-        userInfo,
-        userRecord,
-      };
-    } else {
-      console.log('getUserByEmail: Cannot find user in DB. OK to save user.');
-      return user;
-    }
-  }
-
-  async saveUser(user: User) {
+  async saveUser(user: UserEntity): Promise<void> {
     const checkUserDB = await this.getUserByEmail(user.userInfo.email);
     if (checkUserDB === null) {
       const newUserModel = new this.userModel(user);
@@ -141,7 +110,7 @@ export class UsersService {
     }
   }
 
-  async updateUserDB(user: User) {
+  async updateUserDB(user: UserEntity): Promise<void> {
     await this.deleteUser(user.userInfo.email);
     await this.saveUser(user);
   }
