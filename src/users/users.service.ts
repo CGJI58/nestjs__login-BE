@@ -2,80 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { UserInfo } from './schemas/userinfo.schema';
 import { defaultUserEntity, UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
-
-  generateAccessTokenRequestURL(ghCode: string): string {
-    const baseUrl = 'https://github.com/login/oauth/access_token';
-    const [clientId, clientSecret] = [
-      process.env.LOCALHOST_CLIENT_ID,
-      process.env.LOCALHOST_CLIENT_SECRET,
-    ];
-    if (clientId && clientSecret) {
-      const config = {
-        client_id: clientId,
-        client_secret: clientSecret,
-        code: ghCode,
-      };
-      const params = new URLSearchParams(config).toString();
-
-      return `${baseUrl}?${params}`;
-    } else {
-      throw new Error('Cannot get clientId or clientSecret.');
-    }
-  }
-
-  async getAccessToken(url: string) {
-    const accessTokenReqest = await (
-      await fetch(url, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-        },
-      })
-    ).json();
-    const accessToken = accessTokenReqest['access_token'];
-    if (typeof accessToken === 'string') {
-      return accessToken;
-    } else {
-      throw new Error('Cannot get accessToken from github O Auth app.');
-    }
-  }
-
-  async getUserInfo(accessToken: string): Promise<UserInfo> {
-    try {
-      const response = await fetch('https://api.github.com/user/emails', {
-        headers: {
-          Authorization: `token ${accessToken}`,
-        },
-      });
-      const userInfo: UserInfo = (await response.json())[0];
-      return userInfo;
-    } catch {
-      throw new Error('Cannot get userinfo from github.');
-    }
-  }
-
-  async loginByGhCode(ghCode: string) {
-    const tokenRequestURL = this.generateAccessTokenRequestURL(ghCode);
-    const accessToken = await this.getAccessToken(tokenRequestURL);
-    const userInfo = await this.getUserInfo(accessToken);
-    const user = await this.getUserByEmail(userInfo.email);
-
-    if (user.userInfo.email !== '') {
-      console.log('loginByGhCode: User already exists. Load user data.');
-    } else {
-      console.log('loginByGhCode: User not exists. Create new user data.');
-      this.saveUser({ ...user, userInfo });
-    }
-    //이 시점에 JWT 생성 (auth 모듈에서 처리.)
-
-    return user;
-  }
 
   async getUserByEmail(email: string): Promise<UserEntity> {
     const target = await this.userModel
@@ -86,7 +17,6 @@ export class UsersService {
       const user: UserEntity = { userInfo, userRecord };
       return user;
     } else {
-      console.log('getUserByEmail: Cannot find user in DB. OK to save user.');
       return defaultUserEntity;
     }
   }
