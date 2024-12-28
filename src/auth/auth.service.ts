@@ -15,8 +15,8 @@ export class AuthService {
   generateAccessTokenRequestURL(ghCode: string): string {
     const baseUrl = 'https://github.com/login/oauth/access_token';
     const [clientId, clientSecret] = [
-      process.env.LOCALHOST_CLIENT_ID,
-      process.env.LOCALHOST_CLIENT_SECRET,
+      process.env.CLIENT_ID,
+      process.env.CLIENT_SECRET,
     ];
     if (clientId && clientSecret) {
       const config = {
@@ -69,33 +69,25 @@ export class AuthService {
     const userInfo = await this.getUserInfo(accessToken);
 
     const user = await this.usersService.getUserByEmail(userInfo.email);
-    // this.authService.generateJWT(user, res);
+    const result = this.generateJWT(user);
 
     if (user.userInfo.email !== '') {
       console.log(`Load user data. email: ${user.userInfo.email}`);
-      //여기서는 쿠키만 보내주고, user 정보는 get-user-by-cookie 가 실행될 때 보내준다.
+      return result;
     } else {
       const newUser: UserEntity = { ...user, userInfo };
       console.log(
         `Create user and load user data. email: ${newUser.userInfo.email}`,
       );
       this.usersService.saveUser(newUser);
-      //여기서는 쿠키만 보내주고, user 정보는 get-user-by-cookie 가 실행될 때 보내준다.
+      return this.generateJWT(newUser);
     }
   }
 
-  generateJWT(user: UserEntity, res: Response) {
+  generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {
     const payload = { sub: user.userInfo.email };
     const jwt = this.jwtService.sign(payload);
-    res.cookie('jwt', jwt, { httpOnly: true, maxAge: 3600000 });
-    console.log('cookie set');
-  }
-
-  loginByCookie() {
-    console.log('여기서 쿠키로 사용자 인증 후 사용자 정보 반환.');
-  }
-
-  deleteCookie() {
-    console.log('여기서 쿠키 삭제.');
+    console.log('JWT generated');
+    return { jwt, user };
   }
 }

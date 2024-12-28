@@ -6,9 +6,7 @@ const PORT_NUMBER = process.env.PORT;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({ origin: process.env.FE_URL, credentials: true });
-  // 배포하기 전에 cloudtype 상태변수 업데이트할 것:
-  // FE_URL=https://cgji58.github.io/reactjs__oauth-practice/
+  app.enableCors({ origin: true, credentials: true });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

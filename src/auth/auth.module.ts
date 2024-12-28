@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
@@ -13,14 +14,16 @@ import { UsersModule } from 'src/users/users.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1m' },
+        signOptions: {
+          expiresIn: '24h', // 배포 시 배포서버 상태변수에 추가할 것.
+        },
       }),
       inject: [ConfigService],
     }),
     ConfigModule,
     forwardRef(() => UsersModule),
   ],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
   controllers: [AuthController],
 })
