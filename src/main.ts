@@ -16,7 +16,7 @@ async function bootstrap() {
   );
   if (PORT_NUMBER) {
     await app.listen(PORT_NUMBER);
-    console.log(`http://localhost:${PORT_NUMBER}`);
+    console.log(`Listen at port: ${PORT_NUMBER}`);
   } else throw new Error('Cannot get port number.');
 }
 bootstrap();

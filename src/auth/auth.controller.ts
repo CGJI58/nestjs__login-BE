@@ -16,15 +16,17 @@ import { CustomRequest } from 'src/types/express-request.interface';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
   @Post('login-by-ghcode')
   async loginByGhCode(@Body('ghCode') ghCode: string, @Res() res: Response) {
     console.log('Run loginByGhCode()');
     try {
       const result = await this.authService.loginByGhCode(ghCode);
-      const maxAge = Number(process.env.JWT_EXPIRED_HOUR ?? '24') * 3600 * 1000; // 배포 시 배포서버 상태변수에 추가할 것.
+      const maxAge =
+        Number(process.env.JWT_EXPIRED_IN_HOUR ?? '24') * 3600 * 1000;
       res.cookie('jwt', result.jwt, {
-        // httpOnly: true, // 배포 시 주석 해제
         maxAge,
+        path: '/reactjs__oauth-practice/',
       });
       res.status(HttpStatus.OK).send(result.user);
     } catch (error) {
@@ -43,7 +45,6 @@ export class AuthController {
   @Post('delete-cookie')
   async deleteCookie(@Res() res: Response) {
     console.log('Run logOut()');
-    // res.cookie('jwt', '', { httpOnly: true, expires: new Date(0) }); // 배포 시 이걸로 변경
     res.cookie('jwt', '', { expires: new Date(0) });
     res
       .status(HttpStatus.OK)

@@ -15,7 +15,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '24h', // 배포 시 배포서버 상태변수에 추가할 것.
+          expiresIn: `${configService.get<string>('JWT_EXPIRED_IN_HOUR')}h`,
         },
       }),
       inject: [ConfigService],
