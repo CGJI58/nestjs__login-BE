@@ -105,7 +105,7 @@ export class UsersService {
     } else return defaultUserEntity;
   }
 
-  async createUser(user: User): Promise<UserEntity> {
+  async createUser(user: UserEntity): Promise<UserEntity> {
     const newUser = new this.userModel(user);
     await newUser.save();
     console.log('create user');
@@ -124,7 +124,7 @@ export class UsersService {
     }
   }
 
-  async updateUser(user: User) {
+  async updateUser(user: UserEntity) {
     await this.deleteUser(user.userInfo.email);
     const newUser = await this.createUser(user);
     return newUser;
