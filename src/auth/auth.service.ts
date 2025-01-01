@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { UserEntity } from 'src/users/entities/user.entity';
@@ -89,5 +89,16 @@ export class AuthService {
     const jwt = this.jwtService.sign(payload);
     console.log('JWT generated');
     return { jwt, user };
+  }
+
+  async decodeJWT(jwt: string): Promise<string> {
+    try {
+      const decoded = this.jwtService.verify(jwt);
+      console.log('jwt decoded:', decoded.sub);
+      return decoded.sub;
+    } catch (error) {
+      console.error('Invalid jwt:', error);
+      throw new UnauthorizedException('Invalid jwt');
+    }
   }
 }
