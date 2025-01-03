@@ -68,20 +68,16 @@ export class AuthService {
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
 
-    const user = await this.usersService.getUserByEmail(userInfo.email);
-    const result = this.generateJWT(user);
-
-    if (user.userInfo.email !== '') {
-      console.log(`Load user data. email: ${user.userInfo.email}`);
-      return result;
-    } else {
-      const newUser: UserEntity = { ...user, userInfo };
-      console.log(
-        `Create user and load user data. email: ${newUser.userInfo.email}`,
-      );
-      this.usersService.saveUser(newUser);
-      return this.generateJWT(newUser);
+    let user = await this.usersService.getUserByEmail(userInfo.email);
+    if (!user) {
+      console.log('Create user.');
+      user = {
+        userInfo,
+        userRecord: { nickname: '', diaries: [] },
+      };
     }
+    this.usersService.saveUser(user);
+    return this.generateJWT(user);
   }
 
   generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {

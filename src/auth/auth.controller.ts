@@ -34,7 +34,7 @@ export class AuthController {
         sameSite: 'none',
         secure: true,
       });
-      res.status(HttpStatus.OK).send(result.user);
+      res.status(HttpStatus.OK);
     } catch (error) {
       console.error('Error in loginByGhCode():', error.message);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(error.message);
@@ -50,7 +50,13 @@ export class AuthController {
       if (jwt) {
         const email = await this.authService.decodeJWT(jwt); // 오류처리 코드 추가할 것.
         const user = await this.usersService.getUserByEmail(email);
-        res.status(HttpStatus.OK).send(user);
+        if (user) {
+          res.status(HttpStatus.OK).send(user);
+        } else {
+          res
+            .status(HttpStatus.UNAUTHORIZED)
+            .send('Invalid token. No matched user.');
+        }
       }
     }
   }

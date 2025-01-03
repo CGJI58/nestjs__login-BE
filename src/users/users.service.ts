@@ -2,28 +2,26 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { defaultUserEntity, UserEntity } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async getUserByEmail(email: string): Promise<UserEntity> {
-    const target = await this.userModel
+  async getUserByEmail(email: string): Promise<UserEntity | null> {
+    let target: UserEntity | null = await this.userModel
       .findOne({ 'userInfo.email': email })
       .exec();
     if (target) {
       const { userInfo, userRecord } = target;
-      const user: UserEntity = { userInfo, userRecord };
-      return user;
-    } else {
-      return defaultUserEntity;
+      target = { userInfo, userRecord };
     }
+    return target;
   }
 
   async saveUser(user: UserEntity): Promise<void> {
     const checkUserDB = await this.getUserByEmail(user.userInfo.email);
-    if (checkUserDB.userInfo.email === '') {
+    if (!checkUserDB) {
       const newUserModel = new this.userModel(user);
       await newUserModel.save();
       console.log('save user');
