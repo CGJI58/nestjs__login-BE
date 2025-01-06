@@ -21,6 +21,7 @@ export class UsersService {
 
   async saveUser(user: UserEntity): Promise<void> {
     const checkUserDB = await this.getUserByEmail(user.userInfo.email);
+    console.log(`saveUser(): checkUserDB=${checkUserDB}`);
     if (!checkUserDB) {
       const newUserModel = new this.userModel(user);
       await newUserModel.save();

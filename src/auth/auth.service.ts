@@ -75,8 +75,8 @@ export class AuthService {
         userInfo,
         userRecord: { nickname: '', diaries: [] },
       };
+      await this.usersService.saveUser(user);
     }
-    this.usersService.saveUser(user);
     return this.generateJWT(user);
   }
 
