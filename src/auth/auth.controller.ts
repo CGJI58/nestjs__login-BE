@@ -35,7 +35,7 @@ export class AuthController {
         sameSite: 'none',
         secure: true,
       });
-      res.status(HttpStatus.OK);
+      res.status(HttpStatus.OK).send();
     } catch (error) {
       console.error('Error in loginByGhCode():', error.message);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(error.message);
