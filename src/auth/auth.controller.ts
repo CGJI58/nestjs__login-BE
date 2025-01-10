@@ -26,7 +26,6 @@ export class AuthController {
     console.log('Run loginByGhCode()');
     try {
       const result = await this.authService.loginByGhCode(ghCode);
-      console.log(`loginByGhCode(): result=${result}`);
       const maxAge =
         Number(process.env.JWT_EXPIRED_IN_HOUR ?? '24') * 3600 * 1000;
       res.cookie('jwt', result.jwt, {
