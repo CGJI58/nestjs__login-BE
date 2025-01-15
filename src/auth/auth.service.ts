@@ -82,7 +82,6 @@ export class AuthService {
   generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {
     const payload = { sub: user.userInfo.email };
     const jwt = this.jwtService.sign(payload);
-    console.log('JWT generated');
     return { jwt, user };
   }
 
