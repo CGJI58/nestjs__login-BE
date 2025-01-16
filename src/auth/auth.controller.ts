@@ -53,6 +53,10 @@ export class AuthController {
       const maxAge =
         Number(process.env.JWT_EXPIRED_IN_HOUR ?? '24') * 3600 * 1000;
       res.cookie('jwt', jwt, { ...this.cookieSettings, maxAge });
+
+      console.log('cookie jwt:', jwt);
+      console.log('cookie settings:', { ...this.cookieSettings, maxAge });
+
       res.status(HttpStatus.OK).send({ message: 'login success.' });
     } catch (error) {
       console.error('Error in loginByGhCode():', error.message);
