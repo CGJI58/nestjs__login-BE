@@ -35,13 +35,13 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {
     const FE_DOMAIN = this.configService.get<string>('FE_DOMAIN');
-    this.IS_LOCAL = FE_DOMAIN === 'http://localhost:3000';
+    this.IS_LOCAL = FE_DOMAIN === 'localhost';
     this.cookieSettings = {
       httpOnly: !this.IS_LOCAL,
       secure: !this.IS_LOCAL,
       sameSite: 'none',
       path: '/',
-      domain: this.configService.get<string>('FE_DOMAIN'),
+      domain: this.configService.get<string>('BE_DOMAIN'),
     };
   }
 
