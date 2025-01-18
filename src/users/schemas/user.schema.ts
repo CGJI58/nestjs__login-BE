@@ -7,9 +7,6 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-  @Prop({ required: true })
-  hashCode: string;
-
   @Prop({ type: UserInfoSchema, required: true })
   userInfo: UserInfo;
 
