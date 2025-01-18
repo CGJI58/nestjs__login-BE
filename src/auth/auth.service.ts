@@ -88,7 +88,6 @@ export class AuthService {
   async decodeJWT(jwt: string): Promise<string> {
     try {
       const decoded = this.jwtService.verify(jwt);
-      console.log('jwt decoded:', decoded.sub);
       return decoded.sub;
     } catch (error) {
       console.error('Invalid jwt:', error);
