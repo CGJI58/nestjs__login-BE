@@ -38,7 +38,7 @@ export class AuthController {
     this.IS_LOCAL = FE_DOMAIN === 'localhost';
     this.cookieSettings = {
       httpOnly: !this.IS_LOCAL,
-      secure: !this.IS_LOCAL,
+      secure: true,
       sameSite: 'none',
       path: '/',
       domain: this.configService.get<string>('BE_DOMAIN'),
