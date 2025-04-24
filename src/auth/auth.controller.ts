@@ -65,19 +65,18 @@ export class AuthController {
   async getUserByCookie(@Req() req: Request, @Res() res: Response) {
     console.log('Run getUserByCookie()');
     if (req.headers.cookie) {
-      const jwt = req.headers.cookie?.replace('jwt=', '');
-      //jwt 가 정상적인지 검사
-      if (jwt) {
-        const email = await this.authService.decodeJWT(jwt); // 오류처리 코드 추가할 것.
-        const user = await this.usersService.getUserByEmail(email);
-        if (user) {
-          res.status(HttpStatus.OK).send(user);
-        } else {
-          res
-            .status(HttpStatus.UNAUTHORIZED)
-            .send('Invalid token. No matched user.');
-        }
+      const jwt = req.headers.cookie.replace('jwt=', '');
+      const email = await this.authService.decodeJWT(jwt); // 오류처리 코드 추가할 것.
+      const user = await this.usersService.getUserByEmail(email);
+      if (user) {
+        res.status(HttpStatus.OK).send(user);
+      } else {
+        res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send('Invalid token. No matched user.');
       }
+    } else {
+      res.status(HttpStatus.UNAUTHORIZED).send('Invalid token. No cookie.');
     }
   }
 
