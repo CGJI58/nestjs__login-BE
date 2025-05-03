@@ -17,9 +17,6 @@ export class Diary {
 
 @Schema()
 export class UserRecord {
-  @Prop({ type: String, default: '' })
-  nickname: string;
-
   @Prop({ type: Array<Diary>, default: [] })
   diaries: Array<Diary>;
 }

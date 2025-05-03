@@ -72,7 +72,12 @@ export class AuthService {
       console.log('Create user.');
       user = {
         userInfo,
-        userRecord: { nickname: '', diaries: [] },
+        userRecord: { diaries: [] },
+        userConfig: {
+          nickname: '사용자',
+          isDarkTheme: false,
+          password: '임시비번임',
+        },
       };
       await this.usersService.saveUser(user);
     }

@@ -13,8 +13,8 @@ export class UsersService {
       .findOne({ 'userInfo.email': email })
       .exec();
     if (target) {
-      const { userInfo, userRecord } = target;
-      target = { userInfo, userRecord };
+      const { userInfo, userRecord, userConfig } = target;
+      target = { userInfo, userRecord, userConfig };
     }
     return target;
   }
