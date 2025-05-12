@@ -6,4 +6,5 @@ export class UserEntity {
   userInfo: UserInfo;
   userRecord: UserRecord;
   userConfig: UserConfig;
+  synchronized: boolean;
 }

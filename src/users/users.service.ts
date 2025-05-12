@@ -8,15 +8,42 @@ import { UserEntity } from './entities/user.entity';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
+  removeIdKey(userObject: any) {
+    if ('_id' in userObject) {
+      const { _id, ...rest } = userObject;
+      return { ...rest };
+    }
+    return userObject;
+  }
+
   async getUserByEmail(email: string): Promise<UserEntity | null> {
-    let target: UserEntity | null = await this.userModel
-      .findOne({ 'userInfo.email': email })
+    let targetArray = await this.userModel
+      .aggregate([
+        { $match: { 'userInfo.email': email } },
+        {
+          $project: {
+            _id: 0,
+            'userInfo._id': 0,
+            'userRecord._id': 0,
+            'userConfig._id': 0,
+          },
+        },
+      ])
       .exec();
+    let target: UserEntity | null =
+      targetArray.length > 0 ? targetArray[0] : null;
     if (target) {
       const { userInfo, userRecord, userConfig } = target;
-      target = { userInfo, userRecord, userConfig };
+      const cleanedTarget: UserEntity = {
+        userInfo: ((userInfo) => this.removeIdKey(userInfo))(userInfo),
+        userRecord: ((userRecord) => this.removeIdKey(userRecord))(userRecord),
+        userConfig: ((userConfig) => this.removeIdKey(userConfig))(userConfig),
+        synchronized: true,
+      };
+      return cleanedTarget;
+    } else {
+      return null;
     }
-    return target;
   }
 
   async saveUser(user: UserEntity): Promise<void> {

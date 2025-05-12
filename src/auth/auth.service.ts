@@ -78,6 +78,7 @@ export class AuthService {
           isDarkTheme: false,
           password: '임시비번임',
         },
+        synchronized: true,
       };
       await this.usersService.saveUser(user);
     }

@@ -16,6 +16,9 @@ export class User {
 
   @Prop({ type: UserConfigSchema, required: true })
   userConfig: UserConfig;
+
+  @Prop({ required: true })
+  synchronized: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
