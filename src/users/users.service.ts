@@ -17,7 +17,7 @@ export class UsersService {
   }
 
   async getUserByEmail(email: string): Promise<UserEntity | null> {
-    let targetArray = await this.userModel
+    const targetArray = await this.userModel
       .aggregate([
         { $match: { 'userInfo.email': email } },
         {
@@ -30,7 +30,7 @@ export class UsersService {
         },
       ])
       .exec();
-    let target: UserEntity | null =
+    const target: UserEntity | null =
       targetArray.length > 0 ? targetArray[0] : null;
     if (target) {
       const { userInfo, userRecord, userConfig } = target;
