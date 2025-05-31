@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
@@ -71,5 +75,21 @@ export class UsersService {
   async updateUserDB(user: UserEntity): Promise<void> {
     await this.deleteUser(user.userInfo.email);
     await this.saveUser(user);
+  }
+
+  async validateNickname(nickname: string): Promise<boolean> {
+    if (!nickname) {
+      throw new BadRequestException('Nickname parameter is required');
+    }
+    try {
+      console.log('nickname:', nickname);
+      const result = await this.userModel.findOne({
+        'userConfig.nickname': nickname,
+      });
+      return !!result; // result가 존재하면 true, 없으면 false
+    } catch (error) {
+      console.error('Error validating nickname:', error);
+      throw new InternalServerErrorException('Failed to validate nickname');
+    }
   }
 }
