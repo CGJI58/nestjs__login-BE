@@ -76,7 +76,6 @@ export class AuthService {
         userConfig: {
           nickname: '사용자',
           isDarkTheme: false,
-          password: '임시비번임',
         },
         synchronized: true,
       };
