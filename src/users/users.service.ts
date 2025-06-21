@@ -83,10 +83,13 @@ export class UsersService {
     }
     try {
       console.log('nickname:', nickname);
-      const result = await this.userModel.findOne({
+      const duplicated = (await this.userModel.findOne({
         'userConfig.nickname': nickname,
-      });
-      return !!result; // result가 존재하면 true, 없으면 false
+      }))
+        ? true
+        : false;
+      console.log('duplicated:', duplicated);
+      return !duplicated; // duplicated가 true면 false를 반환하여 사용 불가 판정
     } catch (error) {
       console.error('Error validating nickname:', error);
       throw new InternalServerErrorException('Failed to validate nickname');

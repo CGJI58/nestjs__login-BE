@@ -39,7 +39,7 @@ export class UsersController {
   ) {
     try {
       const isValid = await this.usersService.validateNickname(nickname);
-      console.log(isValid);
+      console.log('isValid: ', isValid);
 
       // 응답 보내기
       res.status(200).json({ isValid });
