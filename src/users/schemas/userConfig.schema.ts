@@ -8,7 +8,7 @@ export class UserConfig {
   @Prop({ required: true, default: false })
   isDarkTheme: boolean;
 
-  @Prop({ required: true, default: 16 })
-  fontSize: number;
+  @Prop({ required: true, default: 1 })
+  UIScale: 0 | 1 | 2 | 3;
 }
 export const UserConfigSchema = SchemaFactory.createForClass(UserConfig);
