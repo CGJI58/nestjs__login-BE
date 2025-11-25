@@ -1,13 +1,9 @@
-배포 버전 : v3
+배포 버전 : v4
 
 Front-End (local)<br>
 repository: reactjs\_\_oauth-practice<br>
 branch: master<br>
-commit: "배포버전: v3", "53c016ae449f26d9c01490fdd76b3b9c143c3b42"<br>
-
-Front-End (deploy)<br>
-branch: gh-pages<br>
-commit: "Deploy from v3: fe101a3", "53c016ae449f26d9c01490fdd76b3b9c143c3b42"<br>
+commit: "배포버전: v4", "4eeeb1cc5f65239b0f64ef2e5626ac1b32174bfc"<br>
 deploy url: https://cgji58.github.io/reactjs__oauth-practice/<br>
 
 Back-End (deploy)<br>
