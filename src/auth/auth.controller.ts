@@ -24,7 +24,6 @@ interface ICookieSettings {
 }
 
 @Controller('auth')
-@UseGuards(ThrottlerGuard)
 export class AuthController {
   private readonly IS_LOCAL: boolean;
   private readonly cookieSettings: ICookieSettings;
@@ -46,6 +45,7 @@ export class AuthController {
   }
 
   @Post('login-by-ghcode')
+  @UseGuards(ThrottlerGuard)
   async loginByGhCode(@Body('ghCode') ghCode: string, @Res() res: Response) {
     console.log('Run loginByGhCode()');
     try {
@@ -62,7 +62,7 @@ export class AuthController {
   }
 
   @Get('get-user-by-cookie')
-  async getUserByCookie(@Req() req: Request, @Res() res: Response) {
+  @UseGuards(ThrottlerGuard)
     console.log('Run getUserByCookie()');
     if (req.headers.cookie) {
       const jwt = req.headers.cookie.replace('jwt=', '');

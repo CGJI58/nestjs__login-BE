@@ -8,14 +8,14 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from 'src/auth/auth.module';
 
 const ATLAS_USERNAME = 'oAuthTory';
-const REQ_LIMIT_INTERVAL_IN_SEC = 60;
+const REQ_LIMIT_INTERVAL_IN_SEC = 20;
 
 @Module({
   imports: [
     ThrottlerModule.forRoot([
       {
         ttl: REQ_LIMIT_INTERVAL_IN_SEC * 1000,
-        limit: 30,
+        limit: 10,
       },
     ]),
     UsersModule,
