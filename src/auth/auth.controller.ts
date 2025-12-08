@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -13,6 +14,7 @@ import { Request, Response } from 'express';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
 
 interface ICookieSettings {
   maxAge?: number;
@@ -62,25 +64,22 @@ export class AuthController {
   }
 
   @Get('get-user-by-cookie')
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(AuthGuard('jwt'), ThrottlerGuard)
+  async getUserByCookie(@Req() req: { user: { email: string } }) {
     console.log('Run getUserByCookie()');
-    if (req.headers.cookie) {
-      const jwt = req.headers.cookie.replace('jwt=', '');
-      const email = await this.authService.decodeJWT(jwt); // 오류처리 코드 추가할 것.
-      const user = await this.usersService.getUserByEmail(email);
-      if (user) {
-        res.status(HttpStatus.OK).send(user);
-      } else {
-        res
-          .status(HttpStatus.UNAUTHORIZED)
-          .send('Invalid token. No matched user.');
-      }
-    } else {
-      res.status(HttpStatus.UNAUTHORIZED).send('Invalid token. No cookie.');
+    const { email } = req.user;
+    if (!email) {
+      throw new UnauthorizedException('Invalid token payload');
     }
+    const user = await this.usersService.getUserByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return user;
   }
 
   @Post('delete-cookie')
+  @UseGuards(AuthGuard('jwt'))
   async deleteCookie(@Res() res: Response) {
     console.log('Run logOut()');
     res.cookie('jwt', '', { ...this.cookieSettings, maxAge: 0 });

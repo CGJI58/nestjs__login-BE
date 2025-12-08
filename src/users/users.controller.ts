@@ -12,9 +12,10 @@ import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
-@UseGuards(ThrottlerGuard)
+@UseGuards(AuthGuard('jwt'), ThrottlerGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

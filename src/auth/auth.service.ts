@@ -86,18 +86,10 @@ export class AuthService {
   }
 
   generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {
-    const payload = { sub: user.userInfo.email };
-    const jwt = this.jwtService.sign(payload);
+    const payload = { email: user.userInfo.email };
+    const jwt = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+    });
     return { jwt, user };
-  }
-
-  async decodeJWT(jwt: string): Promise<string> {
-    try {
-      const decoded = this.jwtService.verify(jwt);
-      return decoded.sub;
-    } catch (error) {
-      console.error('Invalid jwt:', error);
-      throw new UnauthorizedException('Invalid jwt');
-    }
   }
 }
