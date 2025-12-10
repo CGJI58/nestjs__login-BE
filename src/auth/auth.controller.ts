@@ -10,24 +10,19 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
-
-interface ICookieSettings {
-  maxAge?: number;
-  httpOnly: boolean;
-  secure: boolean;
-  sameSite: 'lax' | 'none';
-  path?: string;
-  domain?: string;
-}
+import { COOKIE_MAXAGE } from 'src/constants/constants';
+import {
+  getCookieSettings,
+  ICookieSettings,
+} from 'src/constants/cookie-settings';
 
 @Controller('auth')
 export class AuthController {
-  private readonly IS_LOCAL: boolean;
   private readonly cookieSettings: ICookieSettings;
 
   constructor(
@@ -35,15 +30,7 @@ export class AuthController {
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
   ) {
-    const FE_DOMAIN = this.configService.get<string>('FE_DOMAIN');
-    this.IS_LOCAL = FE_DOMAIN === 'localhost';
-    this.cookieSettings = {
-      httpOnly: !this.IS_LOCAL,
-      secure: true,
-      sameSite: 'none',
-      path: '/',
-      domain: this.configService.get<string>('BE_DOMAIN'),
-    };
+    this.cookieSettings = getCookieSettings(this.configService);
   }
 
   @Post('login-by-ghcode')
@@ -52,9 +39,12 @@ export class AuthController {
     console.log('Run loginByGhCode()');
     try {
       const { jwt } = await this.authService.loginByGhCode(ghCode);
-      const maxAge =
-        Number(process.env.JWT_EXPIRED_IN_HOUR ?? '24') * 3600 * 1000;
+      const maxAge = COOKIE_MAXAGE;
       res.cookie('jwt', jwt, { ...this.cookieSettings, maxAge });
+      res.cookie('jwtExpires', Date.now() + maxAge, {
+        ...this.cookieSettings,
+        maxAge,
+      });
 
       res.status(HttpStatus.OK).send({ message: 'login success.' });
     } catch (error) {
@@ -67,7 +57,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'), ThrottlerGuard)
   async getUserByCookie(@Req() req: { user: { email: string } }) {
     console.log('Run getUserByCookie()');
-    const { email } = req.user;
+    const { email } = req.user; // from JwtStrategy.validate()
     if (!email) {
       throw new UnauthorizedException('Invalid token payload');
     }
@@ -83,6 +73,7 @@ export class AuthController {
   async deleteCookie(@Res() res: Response) {
     console.log('Run logOut()');
     res.cookie('jwt', '', { ...this.cookieSettings, maxAge: 0 });
+    res.cookie('jwtExpires', '', { ...this.cookieSettings, maxAge: 0 });
     res.status(HttpStatus.OK).send({ message: 'Cookie has been deleted' });
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { UserInfo } from 'src/users/schemas/userinfo.schema';
@@ -87,9 +87,7 @@ export class AuthService {
 
   generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {
     const payload = { email: user.userInfo.email };
-    const jwt = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-    });
+    const jwt = this.jwtService.sign(payload);
     return { jwt, user };
   }
 }
