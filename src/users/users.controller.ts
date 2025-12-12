@@ -23,14 +23,14 @@ export class UsersController {
   update(@Body() body: { user: UserEntity }) {
     console.log('Run update()');
     const { user } = body;
-    return this.usersService.updateUserDB(user);
+    return this.usersService.updateUserDoc(user);
   }
 
   @Delete('delete')
   delete(@Body() body: { email: string }) {
     console.log('Run delete()');
     const { email } = body;
-    return this.usersService.deleteUser(email);
+    return this.usersService.deleteUserDoc(email);
   }
 
   @Get('validate/nickname')

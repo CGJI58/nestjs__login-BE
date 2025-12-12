@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Schema()
+@Schema({ _id: false })
 export class UserInfo {
   @Prop({ required: true, default: '', unique: true })
   email: string;

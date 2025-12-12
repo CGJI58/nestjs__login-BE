@@ -67,7 +67,7 @@ export class AuthService {
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
 
-    let user = await this.usersService.getUserByEmail(userInfo.email);
+    let user = await this.usersService.getUserEntity(userInfo.email);
     if (!user) {
       console.log('Create user.');
       user = {
@@ -80,7 +80,7 @@ export class AuthService {
         },
         synchronized: true,
       };
-      await this.usersService.saveUser(user);
+      await this.usersService.saveUserDoc(user);
     }
     return this.generateJWT(user);
   }

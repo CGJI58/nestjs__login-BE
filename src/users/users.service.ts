@@ -4,77 +4,54 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  removeIdKey(userObject: any) {
-    if ('_id' in userObject) {
-      const { _id, ...rest } = userObject;
-      return { ...rest };
-    }
-    return userObject;
-  }
-
-  async getUserByEmail(email: string): Promise<UserEntity | null> {
-    const targetArray = await this.userModel
-      .aggregate([
-        { $match: { 'userInfo.email': email } },
-        {
-          $project: {
-            _id: 0,
-            'userInfo._id': 0,
-            'userRecord._id': 0,
-            'userConfig._id': 0,
-          },
-        },
-      ])
-      .exec();
-    const target: UserEntity | null =
-      targetArray.length > 0 ? targetArray[0] : null;
-    if (target) {
-      const { userInfo, userRecord, userConfig } = target;
-      const cleanedTarget: UserEntity = {
-        userInfo: ((userInfo) => this.removeIdKey(userInfo))(userInfo),
-        userRecord: ((userRecord) => this.removeIdKey(userRecord))(userRecord),
-        userConfig: ((userConfig) => this.removeIdKey(userConfig))(userConfig),
-        synchronized: true,
-      };
-      return cleanedTarget;
-    } else {
+  async getUserEntity(email: string): Promise<UserEntity | null> {
+    const userEntity = await this.userModel
+      .findOne({ 'userInfo.email': email }, { _id: 0 })
+      .lean<UserEntity>();
+    if (!userEntity) {
       return null;
     }
+    return { ...userEntity, synchronized: true };
   }
 
-  async saveUser(user: UserEntity): Promise<void> {
-    const checkUserDB = await this.getUserByEmail(user.userInfo.email);
-    if (!checkUserDB) {
+  async findUserDoc(email: string): Promise<UserDocument | null> {
+    const userDoc = this.userModel.findOne({ 'userInfo.email': email });
+    return userDoc;
+  }
+
+  async saveUserDoc(user: UserEntity): Promise<void> {
+    const checkUserDB = await this.findUserDoc(user.userInfo.email);
+    if (checkUserDB === null) {
+      console.log('save user');
       const newUserModel = new this.userModel(user);
       await newUserModel.save();
-      console.log('save user');
     } else {
-      throw new Error('User already exists in DB. (duplicated emails)');
+      throw new Error('User already exists in DB. (duplicated email)');
     }
   }
 
-  async deleteUser(email: string) {
-    const result = await this.userModel
+  async deleteUserDoc(email: string) {
+    const deleteResult = await this.userModel
       .deleteOne({ 'userInfo.email': email })
       .exec();
-    if (result.deletedCount === 1) {
+    if (deleteResult.deletedCount === 1) {
       console.log('delete user successfully.');
     } else {
       console.log(`delete user failed. No matched user in DB. email: ${email}`);
     }
   }
 
-  async updateUserDB(user: UserEntity): Promise<void> {
-    await this.deleteUser(user.userInfo.email);
-    await this.saveUser(user);
+  async updateUserDoc(user: UserEntity): Promise<void> {
+    await this.deleteUserDoc(user.userInfo.email);
+    await this.saveUserDoc(user);
   }
 
   async validateNickname(nickname: string): Promise<boolean> {

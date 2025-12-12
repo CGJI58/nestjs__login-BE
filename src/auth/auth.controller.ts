@@ -61,7 +61,7 @@ export class AuthController {
     if (!email) {
       throw new UnauthorizedException('Invalid token payload');
     }
-    const user = await this.usersService.getUserByEmail(email);
+    const user = await this.usersService.getUserEntity(email);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

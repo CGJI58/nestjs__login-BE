@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Schema()
+@Schema({ _id: false })
 export class Diary {
   @Prop({ required: true })
   id: string;
@@ -15,7 +15,7 @@ export class Diary {
   text: string;
 }
 
-@Schema()
+@Schema({ _id: false })
 export class UserRecord {
   @Prop({ type: Array<Diary>, default: [] })
   diaries: Array<Diary>;
