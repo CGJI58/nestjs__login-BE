@@ -72,7 +72,7 @@ export class AuthService {
       console.log('Create user.');
       user = {
         userInfo,
-        userRecord: { diaries: [] },
+        userRecord: { myDiaries: [] },
         userConfig: {
           nickname: '사용자',
           isDarkTheme: false,

@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from 'src/auth/auth.module';
+import { DiariesModule } from 'src/diaries/diaries.module';
 
 const ATLAS_USERNAME = 'oAuthTory';
 const REQ_LIMIT_INTERVAL_IN_SEC = 20;
@@ -19,6 +20,7 @@ const REQ_LIMIT_INTERVAL_IN_SEC = 20;
       },
     ]),
     UsersModule,
+    DiariesModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
