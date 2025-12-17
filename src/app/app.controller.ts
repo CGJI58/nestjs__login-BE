@@ -7,7 +7,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @UseGuards(ThrottlerGuard)
-  @Get()
+  @Get('')
   getCodeRequestURL() {
     console.log('Run getCodeRequestURL()');
     return this.appService.getCodeRequestURL();

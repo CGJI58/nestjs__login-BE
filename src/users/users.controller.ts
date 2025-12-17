@@ -19,21 +19,21 @@ import { AuthGuard } from '@nestjs/passport';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('update')
+  @Post('update') // RESTful api commit 메모: 이건 없앨 예정이라서 수정 안 하고 둠
   update(@Body() body: { user: UserEntity }) {
     console.log('Run update()');
     const { user } = body;
     return this.usersService.updateUserDoc(user);
   }
 
-  @Delete('delete')
-  delete(@Body() body: { email: string }) {
-    console.log('Run delete()');
+  @Delete('')
+  deleteUser(@Body() body: { email: string }) {
+    console.log('Run deleteUser()');
     const { email } = body;
     return this.usersService.deleteUserDoc(email);
   }
 
-  @Get('validate/nickname')
+  @Get('validate-nickname')
   async validateNickname(
     @Query('nickname') nickname: string,
     @Res() res: Response,

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Post,
@@ -33,7 +34,7 @@ export class AuthController {
     this.cookieSettings = getCookieSettings(this.configService);
   }
 
-  @Post('login-by-ghcode')
+  @Post('cookie')
   @UseGuards(ThrottlerGuard)
   async loginByGhCode(@Body('ghCode') ghCode: string, @Res() res: Response) {
     console.log('Run loginByGhCode()');
@@ -53,10 +54,14 @@ export class AuthController {
     }
   }
 
-  @Get('get-user-by-cookie')
+  @Get('cookie')
   @UseGuards(AuthGuard('jwt'), ThrottlerGuard)
-  async getUserByCookie(@Req() req: { user: { email: string } }) {
+  async getUserByCookie(
+    @Req() req: { user: { email: string } },
+    @Res() res: Response,
+  ) {
     console.log('Run getUserByCookie()');
+    res.setHeader('Cache-Control', 'no-store');
     const { email } = req.user; // from JwtStrategy.validate()
     if (!email) {
       throw new UnauthorizedException('Invalid token payload');
@@ -65,10 +70,10 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    return user;
+    return res.json(user);
   }
 
-  @Post('delete-cookie')
+  @Delete('cookie')
   @UseGuards(AuthGuard('jwt'))
   async deleteCookie(@Res() res: Response) {
     console.log('Run logOut()');
