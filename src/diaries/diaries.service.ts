@@ -23,28 +23,32 @@ export class DiariesService {
     return diaryDoc;
   }
 
-  async saveDiaryDoc(diary: DiaryEntity): Promise<void> {
+  async saveDiaryDoc(diary: DiaryEntity): Promise<{ saveDone: boolean }> {
     const checkDiaryDB = await this.findDiaryDoc(diary.id);
     if (checkDiaryDB === null) {
       console.log('save diary');
       const newDiaryModel = new this.diaryModel(diary);
       await newDiaryModel.save();
+      return { saveDone: true };
     } else {
       throw new Error('Diary already exists in DB. (duplicated id)');
     }
   }
 
-  async deleteDiaryDoc(id: number) {
+  async deleteDiaryDoc(id: number): Promise<{ deleteDone: boolean }> {
     const deleteResult = await this.diaryModel.deleteOne({ id }).exec();
     if (deleteResult.deletedCount === 1) {
       console.log('delete diary successfully.');
+      return { deleteDone: true };
     } else {
       console.log(`delete diary failed. No matched diary in DB. id: ${id}`);
+      return { deleteDone: false };
     }
   }
 
-  async updateDiaryDoc(diary: DiaryEntity) {
+  async updateDiaryDoc(diary: DiaryEntity): Promise<{ updateDone: boolean }> {
     await this.deleteDiaryDoc(diary.id);
-    await this.saveDiaryDoc(diary);
+    const { saveDone: updateDone } = await this.saveDiaryDoc(diary);
+    return { updateDone };
   }
 }
