@@ -23,8 +23,8 @@ import { JwtStrategy } from './jwt.strategy';
     ConfigModule,
     forwardRef(() => UsersModule),
   ],
-  providers: [JwtStrategy, AuthService],
   exports: [AuthService],
   controllers: [AuthController],
+  providers: [JwtStrategy, AuthService],
 })
 export class AuthModule {}

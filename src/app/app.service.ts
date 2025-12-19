@@ -7,7 +7,7 @@ export class AppService {
 
   getCodeRequestURL() {
     const clientId = this.configService.get<string>('CLIENT_ID');
-    const codeRequestURL = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=read:user user:email`;
+    const codeRequestURL = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=read:user`;
 
     return { codeRequestURL };
   }

@@ -3,11 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Diary, DiaryDocument } from './schemas/diary.schema';
 import { Model } from 'mongoose';
 import { DiaryEntity } from './entities/diary.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class DiariesService {
   constructor(
     @InjectModel(Diary.name) private diaryModel: Model<DiaryDocument>,
+    private readonly usersService: UsersService,
   ) {}
 
   async getDiaryEntities(): Promise<Array<DiaryEntity>> {
@@ -29,6 +31,7 @@ export class DiariesService {
       console.log('save diary');
       const newDiaryModel = new this.diaryModel(diary);
       await newDiaryModel.save();
+      // 코드 작성 예정: myDiaries 에 id값 추가
       return { saveDone: true };
     } else {
       throw new Error('Diary already exists in DB. (duplicated id)');
@@ -39,6 +42,7 @@ export class DiariesService {
     const deleteResult = await this.diaryModel.deleteOne({ id }).exec();
     if (deleteResult.deletedCount === 1) {
       console.log('delete diary successfully.');
+      // 코드 작성 예정: myDiaries 에서 id값 찾아서 제거
       return { deleteDone: true };
     } else {
       console.log(`delete diary failed. No matched diary in DB. id: ${id}`);

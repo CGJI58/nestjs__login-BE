@@ -19,7 +19,14 @@ import { AuthGuard } from '@nestjs/passport';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('update') // RESTful api commit 메모: 이건 없앨 예정이라서 수정 안 하고 둠
+  /**
+   * 이후로는 user 객체를 통째로 보내지 말고 아래와 같이 세 가지로 분리하여 보낼 것.
+   * userInfo : 로그인할 때 전달 (사용자를 식별하기 위해)
+   * userConfig : 사용자 정보 줄 때 전달 (FE userState 비어있으면 보내줘야 할 기본 정보)
+   * userRecord : myDiaries 정보 요청이 들어오면 전달
+   */
+
+  @Post('update')
   update(@Body() body: { user: UserEntity }) {
     console.log('Run update()');
     const { user } = body;
@@ -27,10 +34,10 @@ export class UsersController {
   }
 
   @Delete('')
-  deleteUser(@Body() body: { email: string }) {
+  deleteUser(@Body() body: { githubId: number }) {
     console.log('Run deleteUser()');
-    const { email } = body;
-    return this.usersService.deleteUserDoc(email);
+    const { githubId } = body;
+    return this.usersService.deleteUserDoc(githubId);
   }
 
   @Get('validate-nickname')
@@ -49,4 +56,7 @@ export class UsersController {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   }
+
+  @Get('my-diaries')
+  getMyDiaries() {}
 }

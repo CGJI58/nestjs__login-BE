@@ -12,9 +12,9 @@ import { UserEntity } from './entities/user.entity';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async getUserEntity(email: string): Promise<UserEntity | null> {
+  async getUserEntity(githubId: number): Promise<UserEntity | null> {
     const userEntity = await this.userModel
-      .findOne({ 'userInfo.email': email }, { _id: 0 })
+      .findOne({ 'userInfo.githubId': githubId }, { _id: 0 })
       .lean<UserEntity>();
     if (!userEntity) {
       return null;
@@ -22,35 +22,37 @@ export class UsersService {
     return { ...userEntity, synchronized: true };
   }
 
-  async findUserDoc(email: string): Promise<UserDocument | null> {
-    const userDoc = this.userModel.findOne({ 'userInfo.email': email });
+  async findUserDoc(githubId: number): Promise<UserDocument | null> {
+    const userDoc = this.userModel.findOne({ 'userInfo.githubId': githubId });
     return userDoc;
   }
 
   async saveUserDoc(user: UserEntity): Promise<void> {
-    const checkUserDB = await this.findUserDoc(user.userInfo.email);
+    const checkUserDB = await this.findUserDoc(user.userInfo.githubId);
     if (checkUserDB === null) {
       console.log('save user');
       const newUserModel = new this.userModel(user);
       await newUserModel.save();
     } else {
-      throw new Error('User already exists in DB. (duplicated email)');
+      throw new Error('User already exists in DB. (duplicated githubId)');
     }
   }
 
-  async deleteUserDoc(email: string) {
+  async deleteUserDoc(githubId: number) {
     const deleteResult = await this.userModel
-      .deleteOne({ 'userInfo.email': email })
+      .deleteOne({ 'userInfo.githubId': githubId })
       .exec();
     if (deleteResult.deletedCount === 1) {
       console.log('delete user successfully.');
     } else {
-      console.log(`delete user failed. No matched user in DB. email: ${email}`);
+      console.log(
+        `delete user failed. No matched user in DB. githubId: ${githubId}`,
+      );
     }
   }
 
   async updateUserDoc(user: UserEntity): Promise<void> {
-    await this.deleteUserDoc(user.userInfo.email);
+    await this.deleteUserDoc(user.userInfo.githubId);
     await this.saveUserDoc(user);
   }
 
@@ -72,4 +74,20 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to validate nickname');
     }
   }
+
+  async addMyDiary({
+    writerId,
+    diaryId,
+  }: {
+    writerId: number;
+    diaryId: number;
+  }) {}
+
+  async deleteMyDiary({
+    writerId,
+    diaryId,
+  }: {
+    writerId: number;
+    diaryId: number;
+  }) {}
 }

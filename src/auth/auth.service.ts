@@ -50,12 +50,13 @@ export class AuthService {
 
   async getUserInfo(accessToken: string): Promise<UserInfo> {
     try {
-      const response = await fetch('https://api.github.com/user/emails', {
+      const response = await fetch('https://api.github.com/user', {
         headers: {
           Authorization: `token ${accessToken}`,
         },
       });
-      const userInfo: UserInfo = (await response.json())[0];
+      const { id: githubId, login: githubUsername } = await response.json();
+      const userInfo: UserInfo = { githubId, githubUsername };
       return userInfo;
     } catch {
       throw new Error('Cannot get userinfo from github.');
@@ -67,7 +68,7 @@ export class AuthService {
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
 
-    let user = await this.usersService.getUserEntity(userInfo.email);
+    let user = await this.usersService.getUserEntity(userInfo.githubId);
     if (!user) {
       console.log('Create user.');
       user = {
@@ -86,7 +87,7 @@ export class AuthService {
   }
 
   generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {
-    const payload = { email: user.userInfo.email };
+    const payload = { githubId: user.userInfo.githubId };
     const jwt = this.jwtService.sign(payload);
     return { jwt, user };
   }

@@ -1,6 +1,6 @@
 declare namespace Express {
   export interface User {
-    email: string;
+    githubId: number;
     iat: number;
     exp: number;
   }

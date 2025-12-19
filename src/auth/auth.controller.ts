@@ -57,16 +57,16 @@ export class AuthController {
   @Get('cookie')
   @UseGuards(AuthGuard('jwt'), ThrottlerGuard)
   async getUserByCookie(
-    @Req() req: { user: { email: string } },
+    @Req() req: { user: { githubId: number } },
     @Res() res: Response,
   ) {
     console.log('Run getUserByCookie()');
     res.setHeader('Cache-Control', 'no-store');
-    const { email } = req.user; // from JwtStrategy.validate()
-    if (!email) {
+    const { githubId } = req.user; // from JwtStrategy.validate()
+    if (!githubId) {
       throw new UnauthorizedException('Invalid token payload');
     }
-    const user = await this.usersService.getUserEntity(email);
+    const user = await this.usersService.getUserEntity(githubId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

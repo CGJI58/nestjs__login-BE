@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     this.cookieSettings = getCookieSettings(this.configService);
   }
 
-  validate(req: Request, payload: { email: string }) {
+  validate(req: Request, payload: { githubId: number }) {
     const cookieExpires = Number(req.cookies?.jwtExpires);
 
     if (!cookieExpires) {
