@@ -1,10 +1,13 @@
-import { UserConfig } from '../schemas/userConfig.schema';
-import { UserInfo } from '../schemas/userinfo.schema';
-import { UserRecord } from '../schemas/userrecord.schema';
+import {
+  IUserConfig,
+  IUserEntity,
+  IUserInfo,
+  IUserRecord,
+} from 'src/@types/types';
 
-export class UserEntity {
-  userInfo: UserInfo;
-  userRecord: UserRecord;
-  userConfig: UserConfig;
+export class UserEntity implements IUserEntity {
+  userInfo: IUserInfo;
+  userRecord: IUserRecord;
+  userConfig: IUserConfig;
   synchronized: boolean;
 }

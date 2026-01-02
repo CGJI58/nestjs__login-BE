@@ -7,10 +7,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { UserEntity } from './entities/user.entity';
+import { MyDiaryParam } from 'src/@types/types';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+  ) {}
 
   async getUserEntity(githubId: number): Promise<UserEntity | null> {
     const userEntity = await this.userModel
@@ -23,7 +26,9 @@ export class UsersService {
   }
 
   async findUserDoc(githubId: number): Promise<UserDocument | null> {
-    const userDoc = this.userModel.findOne({ 'userInfo.githubId': githubId });
+    const userDoc = await this.userModel.findOne({
+      'userInfo.githubId': githubId,
+    });
     return userDoc;
   }
 
@@ -75,19 +80,21 @@ export class UsersService {
     }
   }
 
-  async addMyDiary({
-    writerId,
-    diaryId,
-  }: {
-    writerId: number;
-    diaryId: number;
-  }) {}
+  async addMyDiary({ userId, diaryId }: MyDiaryParam) {
+    const userDoc = await this.findUserDoc(userId);
+    if (userDoc) {
+      userDoc.userRecord.myDiaries.push(diaryId);
+      await userDoc.save();
+    }
+  }
 
-  async deleteMyDiary({
-    writerId,
-    diaryId,
-  }: {
-    writerId: number;
-    diaryId: number;
-  }) {}
+  async deleteMyDiary({ userId, diaryId }: MyDiaryParam) {
+    const userDoc = await this.findUserDoc(userId);
+    if (userDoc) {
+      userDoc.userRecord.myDiaries = userDoc.userRecord.myDiaries.filter(
+        (id: string) => id !== diaryId,
+      );
+      await userDoc.save();
+    }
+  }
 }

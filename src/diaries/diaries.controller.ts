@@ -4,15 +4,15 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Post,
-  Put,
+  Patch,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { DiariesService } from './diaries.service';
-import { DiaryEntity } from './entities/diary.entity';
+import { CreateDiaryReqDto, UpdateDiaryReqDto } from './entities/diary.entity';
+import { User } from 'src/users/user.decorator';
 
 /**
  * add, update, delete diary 가 실행되었을 때,
@@ -23,8 +23,8 @@ import { DiaryEntity } from './entities/diary.entity';
  * 변경이 발생하는 하위 컴포넌트들에서 각자 필요한 api 함수를 호출하여 처리하도록 수정할 것.
  */
 
-@Controller('diaries')
 @UseGuards(AuthGuard('jwt'), ThrottlerGuard)
+@Controller('diaries')
 export class DiariesController {
   constructor(private readonly diariesService: DiariesService) {}
 
@@ -35,22 +35,25 @@ export class DiariesController {
   }
 
   @Post('')
-  async addDiary(@Body() body: { diary: DiaryEntity }) {
+  async createDiary(@Body() body: CreateDiaryReqDto) {
     console.log('Run addDiary()');
-    const { diary } = body;
-    return this.diariesService.saveDiaryDoc(diary);
+    const { userId, title, text } = body;
+    return this.diariesService.saveDiaryDoc({ userId, title, text });
   }
 
-  @Put('')
-  updateDiary(@Body() body: { diary: DiaryEntity }) {
+  @Patch('')
+  updateDiary(@Body() body: UpdateDiaryReqDto) {
     console.log('Run updateDiary()');
-    const { diary } = body;
-    return this.diariesService.updateDiaryDoc(diary);
+    const { diaryId, userId, title, text } = body;
+    return this.diariesService.updateDiaryDoc({ diaryId, userId, title, text });
   }
 
   @Delete(':diaryId')
-  deleteDiary(@Param('diaryId', ParseIntPipe) diaryId: number) {
+  async deleteDiary(
+    @Param('diaryId') diaryId: string,
+    @User('githubId') userId: number,
+  ) {
     console.log('Run deleteDiary()');
-    return this.diariesService.deleteDiaryDoc(diaryId);
+    return this.diariesService.deleteDiaryDoc({ diaryId, userId });
   }
 }

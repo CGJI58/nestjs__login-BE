@@ -2,8 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { UserInfo, UserInfoSchema } from './userinfo.schema';
 import { UserRecord, UserRecordSchema } from './userrecord.schema';
 import { UserConfig, UserConfigSchema } from './userConfig.schema';
+import { HydratedDocument } from 'mongoose';
 
-export type UserDocument = User & Document;
+export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {

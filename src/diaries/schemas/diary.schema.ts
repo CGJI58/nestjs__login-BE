@@ -1,24 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
-export type DiaryDocument = Diary & Document;
+export type DiaryDocument = HydratedDocument<Diary>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Diary {
-  @Prop({ required: true, index: true })
-  id: number;
-
   @Prop({ required: true })
-  writer: string;
-
-  @Prop({ required: true })
-  date: string;
+  userId: number;
 
   @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
   text: string;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const DiarySchema = SchemaFactory.createForClass(Diary);

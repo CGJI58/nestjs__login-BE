@@ -8,6 +8,7 @@ import {
   getCookieSettings,
   ICookieSettings,
 } from 'src/constants/cookie-settings';
+import { JwtPayload } from 'src/@types/types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -17,14 +18,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => req.cookies?.jwt,
       ]),
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: configService.get<string>('JWT_SECRET'),
       passReqToCallback: true, //req를 validate에서 사용 가능
     });
 
     this.cookieSettings = getCookieSettings(this.configService);
   }
 
-  validate(req: Request, payload: { githubId: number }) {
+  validate(req: Request, payload: JwtPayload) {
     const cookieExpires = Number(req.cookies?.jwtExpires);
 
     if (!cookieExpires) {

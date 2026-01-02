@@ -1,58 +1,156 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Diary, DiaryDocument } from './schemas/diary.schema';
 import { Model } from 'mongoose';
-import { DiaryEntity } from './entities/diary.entity';
+import {
+  GetDiaryResDto,
+  CreateDiaryReqDto,
+  UpdateDiaryReqDto,
+} from './entities/diary.entity';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class DiariesService {
   constructor(
-    @InjectModel(Diary.name) private diaryModel: Model<DiaryDocument>,
+    @InjectModel(Diary.name) private diaryModel: Model<Diary>,
     private readonly usersService: UsersService,
   ) {}
 
-  async getDiaryEntities(): Promise<Array<DiaryEntity>> {
+  async getDiaryEntities(): Promise<Array<GetDiaryResDto>> {
     const diaryEntities = await this.diaryModel
-      .find({}, { _id: 0, __v: 0 })
-      .sort({ id: -1 })
-      .lean<Array<DiaryEntity>>();
+      .find({}, { __v: 0 })
+      .sort({ _id: -1 })
+      .lean()
+      .then((docs) =>
+        docs.map(({ _id, userId, createdAt, title, text }) => ({
+          diaryId: _id.toString(),
+          userId,
+          dateValue: new Date(createdAt).getTime(),
+          title,
+          text,
+        })),
+      );
     return diaryEntities;
   }
 
-  async findDiaryDoc(id: number): Promise<DiaryDocument | null> {
-    const diaryDoc = this.diaryModel.findOne({ id });
-    return diaryDoc;
+  async findDiaryDoc(diaryId: string): Promise<DiaryDocument | null> {
+    return this.diaryModel.findById(diaryId).exec();
   }
 
-  async saveDiaryDoc(diary: DiaryEntity): Promise<{ saveDone: boolean }> {
-    const checkDiaryDB = await this.findDiaryDoc(diary.id);
-    if (checkDiaryDB === null) {
-      console.log('save diary');
-      const newDiaryModel = new this.diaryModel(diary);
-      await newDiaryModel.save();
-      // 코드 작성 예정: myDiaries 에 id값 추가
+  async saveDiaryDoc({
+    userId,
+    title,
+    text,
+  }: CreateDiaryReqDto): Promise<{ saveDone: boolean }> {
+    try {
+      // 1. diary 저장
+      const newDiaryModel = new this.diaryModel({ userId, title, text });
+      const diaryDoc = await newDiaryModel.save();
+
+      // 2. userInfo.myDiaries 에 id값 추가 (비동기, 백그라운드)
+      this.usersService
+        .addMyDiary({
+          userId,
+          diaryId: diaryDoc._id.toString(),
+        })
+        .catch((error) => {
+          console.error('Failed to add diary to user:', error);
+        });
+
+      console.log('save diary successfully.');
       return { saveDone: true };
-    } else {
-      throw new Error('Diary already exists in DB. (duplicated id)');
+    } catch (error) {
+      console.error('Unexpected error while saving diary:', error);
+      return { saveDone: false };
     }
   }
 
-  async deleteDiaryDoc(id: number): Promise<{ deleteDone: boolean }> {
-    const deleteResult = await this.diaryModel.deleteOne({ id }).exec();
-    if (deleteResult.deletedCount === 1) {
-      console.log('delete diary successfully.');
-      // 코드 작성 예정: myDiaries 에서 id값 찾아서 제거
-      return { deleteDone: true };
-    } else {
-      console.log(`delete diary failed. No matched diary in DB. id: ${id}`);
+  async deleteDiaryDoc({
+    diaryId,
+    userId,
+  }: {
+    diaryId: string;
+    userId: number;
+  }): Promise<{ deleteDone: boolean }> {
+    try {
+      // 1. diaryId로 diary 조회
+      const diary = await this.diaryModel.findById(diaryId).exec();
+      if (!diary) {
+        console.log(`delete diary failed. No diary found. diaryId: ${diaryId}`);
+        return { deleteDone: false };
+      }
+
+      // 2. userId 일치 여부 확인
+      if (diary.userId !== userId) {
+        console.log(
+          `delete diary failed. User mismatch. diary.userId=${diary.userId}, request.userId=${userId}`,
+        );
+        throw new UnauthorizedException(
+          `User ${userId} is not authorized to delete diary ${diaryId}`,
+        );
+      }
+
+      // 3. 삭제 실행
+      const { acknowledged, deletedCount } = await this.diaryModel
+        .deleteOne({ _id: diaryId })
+        .exec();
+      if (acknowledged && deletedCount > 0) {
+        console.log('delete diary successfully.');
+
+        // userInfo.myDiaries 에서 id값 제거 (비동기, 백그라운드)
+        this.usersService.deleteMyDiary({ userId, diaryId }).catch((error) => {
+          console.error('Failed to remove diary from user:', error);
+        });
+
+        return { deleteDone: true };
+      } else {
+        console.log(
+          `delete diary failed. Delete operation did not succeed. diaryId: ${diaryId}`,
+        );
+        return { deleteDone: false };
+      }
+    } catch (error) {
+      console.error('Unexpected error while deleting diary:', error);
       return { deleteDone: false };
     }
   }
 
-  async updateDiaryDoc(diary: DiaryEntity): Promise<{ updateDone: boolean }> {
-    await this.deleteDiaryDoc(diary.id);
-    const { saveDone: updateDone } = await this.saveDiaryDoc(diary);
-    return { updateDone };
+  async updateDiaryDoc({
+    diaryId,
+    userId,
+    title,
+    text,
+  }: UpdateDiaryReqDto): Promise<{ updateDone: boolean }> {
+    try {
+      // 1. diaryId로 diary 조회
+      const diary = await this.diaryModel.findById(diaryId).exec();
+      if (!diary) {
+        console.log(`update diary failed. No diary found. diaryId: ${diaryId}`);
+        return { updateDone: false };
+      }
+
+      // 2. userId 일치 여부 확인
+      if (diary.userId !== userId) {
+        console.log(
+          `update diary failed. User mismatch. diary.userId=${diary.userId}, request.userId=${userId}`,
+        );
+        throw new UnauthorizedException(
+          `User ${userId} is not authorized to update diary ${diaryId}`,
+        );
+      }
+
+      // 3. title, text 갱신
+      diary.title = title;
+      diary.text = text;
+      diary.updatedAt = new Date();
+
+      await diary.save();
+
+      console.log('update diary successfully.');
+      return { updateDone: true };
+    } catch (error) {
+      console.error('Unexpected error while updating diary:', error);
+      return { updateDone: false };
+    }
   }
 }
