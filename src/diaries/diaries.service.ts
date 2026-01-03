@@ -16,9 +16,9 @@ export class DiariesService {
     private readonly usersService: UsersService,
   ) {}
 
-  async getDiaryEntities(): Promise<Array<GetDiaryResDto>> {
+  async getDiaryEntities(userId: number): Promise<Array<GetDiaryResDto>> {
     const diaryEntities = await this.diaryModel
-      .find({}, { __v: 0 })
+      .find({ userId }, { __v: 0 })
       .sort({ _id: -1 })
       .lean()
       .then((docs) =>

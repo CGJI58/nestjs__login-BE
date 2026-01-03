@@ -29,9 +29,9 @@ export class DiariesController {
   constructor(private readonly diariesService: DiariesService) {}
 
   @Get('')
-  async getDiaries() {
-    console.log('Run getDiaries()');
-    return this.diariesService.getDiaryEntities();
+  async getDiaries(@User('githubId') userId: number) {
+    console.log('Run getDiaries():', userId);
+    return this.diariesService.getDiaryEntities(userId);
   }
 
   @Post('')
