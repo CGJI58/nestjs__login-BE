@@ -19,13 +19,16 @@ export class DiariesService {
   async getDiaryEntities(userId: number): Promise<Array<GetDiaryResDto>> {
     const diaryEntities = await this.diaryModel
       .find({ userId }, { __v: 0 })
-      .sort({ _id: -1 })
+      .sort({ updatedAt: -1 })
       .lean()
       .then((docs) =>
-        docs.map(({ _id, userId, createdAt, title, text }) => ({
+        docs.map(({ _id, userId, createdAt, updatedAt, title, text }) => ({
           diaryId: _id.toString(),
           userId,
-          dateValue: new Date(createdAt).getTime(),
+          dateValue: [
+            new Date(createdAt).getTime(),
+            new Date(updatedAt).getTime(),
+          ],
           title,
           text,
         })),

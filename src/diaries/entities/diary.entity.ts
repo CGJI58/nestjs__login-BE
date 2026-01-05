@@ -11,7 +11,7 @@ export class GetDiaryResDto implements IDiaryEntity {
   userId: number;
 
   @Expose()
-  dateValue: number;
+  dateValue: Array<number>;
 
   @Expose()
   title: string;

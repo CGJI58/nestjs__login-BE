@@ -19,3 +19,5 @@ export class Diary {
 }
 
 export const DiarySchema = SchemaFactory.createForClass(Diary);
+
+DiarySchema.index({ userId: 1, updatedAt: -1 });

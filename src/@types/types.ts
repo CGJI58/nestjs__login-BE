@@ -30,7 +30,7 @@ export interface MyDiaryParam {
 export interface IDiaryEntity {
   diaryId?: string;
   userId?: number;
-  dateValue?: number;
+  dateValue?: Array<number>;
   title?: string;
   text?: string;
 }
