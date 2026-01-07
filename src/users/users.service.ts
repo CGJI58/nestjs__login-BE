@@ -6,7 +6,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { UserEntity } from './entities/user.entity';
+import {
+  getUserEntityResDto,
+  UpdateUserConfigReq,
+  UserEntity,
+} from './entities/user.entity';
 import { MyDiaryParam } from 'src/@types/types';
 
 @Injectable()
@@ -15,13 +19,11 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  async getUserEntity(githubId: number): Promise<UserEntity | null> {
+  async getUserEntity(githubId: number): Promise<getUserEntityResDto | null> {
     const userEntity = await this.userModel
       .findOne({ 'userInfo.githubId': githubId }, { _id: 0 })
       .lean<UserEntity>();
-    if (!userEntity) {
-      return null;
-    }
+    if (!userEntity) return null;
     return { ...userEntity, synchronized: true };
   }
 
@@ -56,9 +58,17 @@ export class UsersService {
     }
   }
 
-  async updateUserDoc(user: UserEntity): Promise<void> {
-    await this.deleteUserDoc(user.userInfo.githubId);
-    await this.saveUserDoc(user);
+  async updateUserDoc(
+    userId: number,
+    userConfig: UpdateUserConfigReq,
+  ): Promise<boolean> {
+    console.log('새로 들어온 userConfig:', userConfig);
+    const result = await this.userModel.updateOne(
+      { 'userInfo.githubId': userId }, // 조건
+      { $set: { userConfig } }, // 업데이트할 필드
+    );
+    // result.modifiedCount가 1 이상이면 업데이트 성공
+    return result.modifiedCount > 0;
   }
 
   async validateNickname(nickname: string): Promise<boolean> {

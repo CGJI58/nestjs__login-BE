@@ -9,10 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserEntity } from './entities/user.entity';
+import { UpdateUserConfigReq } from './entities/user.entity';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from './user.decorator';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'), ThrottlerGuard)
@@ -26,17 +27,18 @@ export class UsersController {
    * userRecord : myDiaries 정보 요청이 들어오면 전달
    */
 
-  @Post('update')
-  update(@Body() body: { user: UserEntity }) {
-    console.log('Run update()');
-    const { user } = body;
-    return this.usersService.updateUserDoc(user);
+  @Post('update/config')
+  updateUserConfig(
+    @User('githubId') githubId: number,
+    @Body() { userConfig }: { userConfig: UpdateUserConfigReq },
+  ) {
+    console.log('Run updateUserConfig()');
+    return this.usersService.updateUserDoc(githubId, userConfig);
   }
 
   @Delete('')
-  deleteUser(@Body() body: { githubId: number }) {
+  deleteUser(@User('githubId') githubId: number) {
     console.log('Run deleteUser()');
-    const { githubId } = body;
     return this.usersService.deleteUserDoc(githubId);
   }
 
@@ -56,7 +58,4 @@ export class UsersController {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   }
-
-  @Get('my-diaries')
-  getMyDiaries() {}
 }

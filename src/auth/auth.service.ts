@@ -68,10 +68,10 @@ export class AuthService {
     const accessToken = await this.getAccessToken(tokenRequestURL);
     const userInfo = await this.getUserInfo(accessToken);
 
-    let user = await this.usersService.getUserEntity(userInfo.githubId);
+    const user = await this.usersService.getUserEntity(userInfo.githubId);
     if (!user) {
       console.log('Create user.');
-      user = {
+      const newUser: UserEntity = {
         userInfo,
         userRecord: { myDiaries: [] },
         userConfig: {
@@ -79,11 +79,12 @@ export class AuthService {
           isDarkTheme: false,
           UIScale: 1,
         },
-        synchronized: true,
       };
-      await this.usersService.saveUserDoc(user);
+      await this.usersService.saveUserDoc(newUser);
+      return this.generateJWT(newUser);
+    } else {
+      return this.generateJWT(user);
     }
-    return this.generateJWT(user);
   }
 
   generateJWT(user: UserEntity): { jwt: string; user: UserEntity } {

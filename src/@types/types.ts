@@ -15,10 +15,10 @@ export interface IUserConfig {
 }
 
 export interface IUserEntity {
-  userInfo: IUserInfo;
-  userRecord: IUserRecord;
-  userConfig: IUserConfig;
-  synchronized: boolean;
+  userInfo?: IUserInfo;
+  userRecord?: IUserRecord;
+  userConfig?: IUserConfig;
+  synchronized?: boolean;
 }
 
 export interface MyDiaryParam {
